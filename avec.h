@@ -51,7 +51,7 @@
         return sqrt(v.x * v.x + v.y * v.y); \
     }
 #define __AVEC2_NORM_OP(T, S) \
-    static avec2##S##_norm(avec2##S v) { \
+    static avec2##S avec2##S##_norm(avec2##S v) { \
         float l = sqrt(v.x * v.x + v.y * v.y); \
         if (l < 1e-6f) \
             return (avec2##S){0}; \
