@@ -19,8 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef __ALIST_H
-#define __ALIST_H
+#ifndef ALIST_H
+#define ALIST_H
 
 #include <assert.h>
 #include <stddef.h>
@@ -32,94 +32,94 @@
  * internal macros 
  */
 /* decides how much the allocation should be increased when needed */
-#define __ALIST_ALLOC_SIZE 16
+#define ALIST_ALLOC_SIZE 16
 /* gets size of the type that the elements are */
-#define __ALIST_TYPE_SIZE(ALIST) sizeof(ALIST.data[0])
-/* calculates the capacity needed for the list (ALIST) based on the length change (CHG) */
-#define __ALIST_CALC_CAP(ALIST, CHG) \
+#define ALIST_TYPE_SIZE(A) sizeof(A.data[0])
+/* calculates the capacity needed for the list (A) based on the length change (C) */
+#define ALIST_CALC_CAP(A, C) \
     /* how many 16s needed to represent all or most of the length */ \
-    (((ALIST.length + CHG) / __ALIST_ALLOC_SIZE) * __ALIST_ALLOC_SIZE) + \
+    (((A.length + C) / ALIST_ALLOC_SIZE) * ALIST_ALLOC_SIZE) + \
     /* figure out whether an extra 16 is needed to fit the array */ \
-    ((((ALIST.length + CHG) / __ALIST_ALLOC_SIZE) * __ALIST_ALLOC_SIZE) < (ALIST.length + CHG) ? __ALIST_ALLOC_SIZE : 0)
+    ((((A.length + C) / ALIST_ALLOC_SIZE) * ALIST_ALLOC_SIZE) < (A.length + C) ? ALIST_ALLOC_SIZE : 0)
 
 /*
  * public macros
  */
-/* simple wrapper for __ALIST_##TYPE structs to make it look good */
-#define alist(TYPE) __ALIST_##TYPE
-/* defines a new alist struct based on a type (TYPE) for the list to be stored in */
-#define alist_new_variant(TYPE) \
+/* simple wrapper for ALIST_##T structs to make it look good */
+#define alist(T) ALIST_##T
+/* defines a new alist struct based on a type (T) for the list to be stored in */
+#define alist_new_variant(T) \
     typedef struct { \
-        TYPE##* data; \
+        T *data; \
         size_t length; \
         size_t capacity; \
-    } __ALIST_##TYPE;
-/* preallocate/reserve some space (N) for a future list (ALIST) */
-#define alist_reserve(ALIST, N) \
+    } ALIST_##T;
+/* preallocate/reserve some space (N) for a future list (A) */
+#define alist_reserve(A, N) \
     { \
-        ALIST.length = N; \
-        ALIST.capacity = __ALIST_CALC_CAP(ALIST, 0); \
-        ALIST.data = malloc(ALIST.capacity * __ALIST_TYPE_SIZE(ALIST)); \
-        assert(ALIST.data != NULL); \
+        A.length = N; \
+        A.capacity = ALIST_CALC_CAP(A, 0); \
+        A.data = malloc(A.capacity * ALIST_TYPE_SIZE(A)); \
+        assert(A.data != NULL); \
     }
-/* creates a list (ALIST) from an existing array (ARR) */
-#define alist_from(ALIST, ARR) \
+/* creates a list (A) from an existing array (ARR) */
+#define alist_from(A, ARR) \
     { \
-        ALIST.length = sizeof(ARR) / sizeof(ARR[0]); \
-        ALIST.capacity = __ALIST_CALC_CAP(ALIST, 0); \
-        ALIST.data = malloc(ALIST.capacity * sizeof(ARR[0])); \
-        assert(ALIST.data != NULL); \
-        memcpy(ALIST.data, ARR, sizeof(ARR)); \
+        A.length = sizeof(ARR) / sizeof(ARR[0]); \
+        A.capacity = ALIST_CALC_CAP(A, 0); \
+        A.data = malloc(A.capacity * sizeof(ARR[0])); \
+        assert(A.data != NULL); \
+        memcpy(A.data, ARR, sizeof(ARR)); \
     }
-/* frees the list (ALIST) */
-#define alist_free(ALIST) \
+/* frees the list (A) */
+#define alist_free(A) \
     { \
-        if (ALIST.data != NULL) \
-            free(ALIST.data); \
-        ALIST.data = NULL; \
-        ALIST.length = 0; \
-        ALIST.capacity = 0; \
+        if (A.data != NULL) \
+            free(A.data); \
+        A.data = NULL; \
+        A.length = 0; \
+        A.capacity = 0; \
     }
-/* inserts a value (VAL) into list (ALIST) at a position (N) */
-#define alist_insert(ALIST, VAL, N) \
+/* inserts a value (V) into list (A) at a position (N) */
+#define alist_insert(A, V, N) \
     { \
-        assert(N >= 0 && N <= ALIST.length); \
-        if (ALIST.length + 1 >= ALIST.capacity) { \
-            ALIST.capacity = __ALIST_CALC_CAP(ALIST, 1); \
-            ALIST.data = realloc(ALIST.data, ALIST.capacity * __ALIST_TYPE_SIZE(ALIST)); \
-            assert(ALIST.data != NULL); \
+        assert(N >= 0 && N <= A.length); \
+        if (A.length + 1 >= A.capacity) { \
+            A.capacity = ALIST_CALC_CAP(A, 1); \
+            A.data = realloc(A.data, A.capacity * ALIST_TYPE_SIZE(A)); \
+            assert(A.data != NULL); \
         } \
-        if (N != ALIST.length) \
-            memmove(ALIST.data + N + 1, ALIST.data + N, (ALIST.length - N) * __ALIST_TYPE_SIZE(ALIST)); \
-        ALIST.data[N] = VAL; \
-        ALIST.length++; \
+        if (N != A.length) \
+            memmove(A.data + N + 1, A.data + N, (A.length - N) * ALIST_TYPE_SIZE(A)); \
+        A.data[N] = V; \
+        A.length++; \
     }
-/* removes a value from the list (ALIST) at position (N) */
-#define alist_remove(ALIST, N) \
+/* removes a value from the list (A) at position (N) */
+#define alist_remove(A, N) \
     { \
-        assert(N >= 0 && N < ALIST.length); \
-        if (__ALIST_CALC_CAP(ALIST, -1) < ALIST.capacity) { \
-            ALIST.capacity = __ALIST_CALC_CAP(ALIST, -1); \
-            ALIST.data = realloc(ALIST.data, ALIST.capacity * __ALIST_TYPE_SIZE(ALIST)); \
-            assert(ALIST.data != NULL); \
+        assert(N >= 0 && N < A.length); \
+        if (ALIST_CALC_CAP(A, -1) < A.capacity) { \
+            A.capacity = ALIST_CALC_CAP(A, -1); \
+            A.data = realloc(A.data, A.capacity * ALIST_TYPE_SIZE(A)); \
+            assert(A.data != NULL); \
         } \
-        if (N != ALIST.length - 1) \
-            memmove(ALIST.data + N, ALIST.data + N + 1, (ALIST.length - N - 1) * __ALIST_TYPE_SIZE(ALIST)); \
-        ALIST.length--; \
+        if (N != A.length - 1) \
+            memmove(A.data + N, A.data + N + 1, (A.length - N - 1) * ALIST_TYPE_SIZE(A)); \
+        A.length--; \
     }
 /* wrapper macros around the insert and remove function for readability */
-#define alist_push_back(ALIST, VAL) alist_insert(ALIST, VAL, ALIST.length)
-#define alist_push_front(ALIST, VAL) alist_insert(ALIST, VAL, 0)
-#define alist_pop_back(ALIST) alist_remove(ALIST, ALIST.length - 1)
-#define alist_pop_front(ALIST) alist_remove(ALIST, 0)
+#define alist_push_back(A, V) alist_insert(A, V, A.length)
+#define alist_push_front(A, V) alist_insert(A, V, 0)
+#define alist_pop_back(A) alist_remove(A, A.length - 1)
+#define alist_pop_front(A) alist_remove(A, 0)
 /* getter macros for readability */
-#define alist_back(ALIST) ALIST.data[ALIST.length - 1]
-#define alist_front(ALIST) ALIST.data[0]
-/* pretty print the list (ALIST) */
-#define alist_print(ALIST, FMT) \
+#define alist_back(A) A.data[A.length - 1]
+#define alist_front(A) A.data[0]
+/* pretty print the list (A) */
+#define alist_print(A, FMT) \
     { \
-        for (size_t i = 0; i < ALIST.length; i++) \
-            printf("%s[%ld] = "FMT"\n", #ALIST, i, ALIST.data[i]); \
+        for (size_t i = 0; i < A.length; i++) \
+            printf("%s[%ld] = "FMT"\n", #A, i, A.data[i]); \
     }
 
-#endif /* __ALIST_H */
+#endif /* ALIST_H */
